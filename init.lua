@@ -4,8 +4,8 @@
 long_name = "Select your Escorts"
 short_name = "select-your-escorts" -- Determines the name of your addon's file.
 for_module = "tome"
-version = {1,6,0}
-addon_version = {2,2,0}
+version = {1,7,0}
+addon_version = {2,3,0}
 weight = 512 -- The lower this value, the sooner your addon will load compared to other addons.
 author = {'Pseudoku'}
 homepage = 'https://steamcommunity.com/id/Pseudoku/home'

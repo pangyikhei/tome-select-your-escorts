@@ -1,7 +1,6 @@
 -- load.lua
 
-class:bindHook("Quest:escort:assign", function(self, data)
-
+class:bindHook("EscortRewards:givers", function(self,data)
     local escortName = game.state.escort_selections[game.state.escortNum]
     if (escortName == nil) then
         -- support more than 9 escorts?
@@ -16,9 +15,9 @@ class:bindHook("Quest:escort:assign", function(self, data)
     end
     local new_types = {}
 
-    for k, escort in pairs(data.possible_types) do
-        if escort.name and escort.name == escortName then
-            new_types[#new_types + 1] = escort
+    for k, possible_escort in pairs(data.possible_types) do
+        if possible_escort.escort and possible_escort.escort.name and possible_escort.escort.name == escortName then
+            new_types[#new_types + 1] = possible_escort
             break
         end
     end
