@@ -1,64 +1,7 @@
-local escorts = {
-    [1] = {
-        name = "lost warrior",
-        text = "[a lost warrior]",
-        unique = false
-    },
-    [2] = {
-        name = "injured seer",
-        text = "[an injured seer]",
-        unique = false
-    },
-    [3] = {
-        name = "repented thief",
-        text = "[a repented thief]",
-        unique = false
-    },
-    [4] = {
-        name = "lone alchemist",
-        text = "[a lone alchemist]",
-        unique = false
-    },
-    [5] = {
-        name = "lost sun paladin",
-        text = "[a lost sun paladin]",
-        unique = false
-    },
-    [6] = {
-        name = "lost defiler",
-        text = "[a lost defiler]",
-        unique = false
-    },
-    [7] = {
-        name = "temporal explorer",
-        text = "[a temporal explorer]",
-        unique = false
-    },
-    [8] = {
-        name = "worried loremaster",
-        text = "[a worried loremaster]",
-        unique = false
-    }
-}
--- tinker must be unlocked and can only be chosen once
-if profile.mod.allow_build.orcs_tinker_eyal then
-    escorts[#escorts + 1] = {
-        name = "lost tinker",
-        text = "[a lost tinker]",
-        unique = true
-    }
-end
-escorts[#escorts + 1] = {
-    name = "random",
-    text = "[an unknown adventurer (random)]",
-    unique = false
-}
-
 local function generate_escorts(jump_target)
     local answers = {}
     local unique_added = {}
-    for i = 1, #escorts do
-        local escort = escorts[i]
+    for k, escort in pairs(escorts) do
         if escort.unique and not unique_added[escort.name] then
             answers[#answers + 1] = {
                 escort.text,

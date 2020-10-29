@@ -1,6 +1,13 @@
 -- load.lua
 
+local EscortRewards = require("mod.class.EscortRewards")
+local initialized = false
+
 class:bindHook("EscortRewards:givers", function(self,data)
+    if not initialized then
+        return data
+    end
+
     local escortName = game.state.escort_selections[game.state.escortNum]
     if (escortName == nil) then
         -- support more than 9 escorts?
@@ -17,7 +24,7 @@ class:bindHook("EscortRewards:givers", function(self,data)
 
     for k, possible_escort in pairs(data.possible_types) do
         if possible_escort.escort and possible_escort.escort.name and possible_escort.escort.name == escortName then
-            new_types[#new_types + 1] = possible_escort
+            new_types[k] = possible_escort
             break
         end
     end
@@ -27,29 +34,22 @@ class:bindHook("EscortRewards:givers", function(self,data)
 end)
 
 class:bindHook("ToME:birthDone", function(self, data)
-    -- Unfortunately the possible_types is locally defined in escort-duty.lua and the Quest:escort:assign hook is only called from there
-    -- So I have no way to retrieve the possible escort types directly until the quest is assigned without interfering with other
-    -- mods.
+    local possible_escorts = EscortRewards:listGivers()
+
     game.state.escort_selections = {}
     game.state.escort_selection_counts = {}
-    game.state.escort_selection_counts["lost warrior"] = 0;
-    game.state.escort_selection_counts["injured seer"] = 0;
-    game.state.escort_selection_counts["repented thief"] = 0;
-    game.state.escort_selection_counts["lone alchemist"] = 0;
-    game.state.escort_selection_counts["lost sun paladin"] = 0;
-    game.state.escort_selection_counts["lost defiler"] = 0;
-    game.state.escort_selection_counts["temporal explorer"] = 0;
-    game.state.escort_selection_counts["worried loremaster"] = 0;
-    game.state.escort_selection_counts["lost tinker"] = 0;
-    game.state.escort_selection_counts["random"] = 0;
+
+    local escort_choices = initEscortChoices(possible_escorts)
     game.state.escortNum = 1
+    initialized = true
 
     local Chat = require "engine.Chat"
     local chat = Chat.new("escort-select", { name = "Select your Escorts!" }, game.player,
         {
             escort_selections = game.state.escort_selections,
             escort_selection_counts = game.state.escort_selection_counts,
-            next_escort = 1
+            next_escort = 1,
+            escorts = escort_choices
         })
     chat:invoke()
 end)
@@ -72,16 +72,11 @@ class:bindHook("Game:alterGameMenu", function(self, data)
                 Chat.new("escorts-already-encountered", {name="All escorts encountered!"}, game.player):invoke()
                 return
             end
-            game.state.escort_selection_counts["lost warrior"] = 0;
-            game.state.escort_selection_counts["injured seer"] = 0;
-            game.state.escort_selection_counts["repented thief"] = 0;
-            game.state.escort_selection_counts["lone alchemist"] = 0;
-            game.state.escort_selection_counts["lost sun paladin"] = 0;
-            game.state.escort_selection_counts["lost defiler"] = 0;
-            game.state.escort_selection_counts["temporal explorer"] = 0;
-            game.state.escort_selection_counts["worried loremaster"] = 0;
-            game.state.escort_selection_counts["lost tinker"] = 0;
-            game.state.escort_selection_counts["random"] = 0;
+
+            initialized = false
+
+            local possible_escorts = EscortRewards:listGivers()
+            local escort_choices = initEscortChoices(possible_escorts)
 
             -- remove selected escorts that have not been encountered yet
             for i = 1, 10 - game.state.escortNum do
@@ -93,15 +88,47 @@ class:bindHook("Game:alterGameMenu", function(self, data)
                 game.state.escort_selection_counts[game.state.escort_selections[i]] = game.state.escort_selection_counts[game.state.escort_selections[i]] + 1
             end
 
+            initialized = true
+
             local chat = Chat.new("escort-select",
                 { name = "Select your Escorts!" },
                 game.player,
                 {
                     escort_selections = game.state.escort_selections,
                     escort_selection_counts = game.state.escort_selection_counts,
-                    next_escort = game.state.escortNum
+                    next_escort = game.state.escortNum,
+                    escorts = escort_choices
                 })
             chat:invoke()
         end
     })
 end)
+
+function initEscortChoices (possible_escorts)
+    local escort_choices = {}
+    for k, possible_escort in pairs(possible_escorts) do
+        game.state.escort_selection_counts[possible_escort.escort.name] = 0
+
+        local escort_name = possible_escort.escort.name
+        local a = "a"
+        if string.find("aeiou", escort_name.sub(1,1)) then
+            a = "an"
+        end
+
+        escort_choices[#escort_choices + 1] = {
+            name = escort_name,
+            text = "[".. a .. " " .. escort_name .. "]",
+            unique = possible_escort.unique
+        }
+    end
+
+    escort_choices[#escort_choices + 1] = {
+        name = "random",
+        text = "[an unknown adventurer (random)]",
+        unique = false
+    }
+
+    game.state.escort_selection_counts["random"] = 0;
+
+    return escort_choices
+end
