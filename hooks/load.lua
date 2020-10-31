@@ -1,10 +1,9 @@
 -- load.lua
 
 local EscortRewards = require("mod.class.EscortRewards")
-local initialized = false
 
 class:bindHook("EscortRewards:givers", function(self,data)
-    if not initialized then
+    if not game.state.initialized_sye then
         return data
     end
 
@@ -41,7 +40,7 @@ class:bindHook("ToME:birthDone", function(self, data)
 
     local escort_choices = initEscortChoices(possible_escorts)
     game.state.escortNum = 1
-    initialized = true
+    game.state.initialized_sye = true
 
     local Chat = require "engine.Chat"
     local chat = Chat.new("escort-select", { name = "Select your Escorts!" }, game.player,
@@ -73,7 +72,7 @@ class:bindHook("Game:alterGameMenu", function(self, data)
                 return
             end
 
-            initialized = false
+            game.state.initialized_sye = false
 
             local possible_escorts = EscortRewards:listGivers()
             local escort_choices = initEscortChoices(possible_escorts)
@@ -88,7 +87,7 @@ class:bindHook("Game:alterGameMenu", function(self, data)
                 game.state.escort_selection_counts[game.state.escort_selections[i]] = game.state.escort_selection_counts[game.state.escort_selections[i]] + 1
             end
 
-            initialized = true
+            game.state.initialized_sye = true
 
             local chat = Chat.new("escort-select",
                 { name = "Select your Escorts!" },
